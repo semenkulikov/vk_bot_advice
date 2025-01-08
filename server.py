@@ -3,7 +3,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
-
+from handlers.user_handlers import start_handler
 
 class Server:
 
@@ -39,30 +39,8 @@ class Server:
         app_logger.info("Сервер запущен! Начинаю слушать сообщения...")
         for event in self.long_poll.listen():  # Слушаем сервер
             # Пришло новое сообщение
-            if event.type == VkBotEventType.MESSAGE_NEW:
-                if event.from_chat:
-                    app_logger.info("New message from chat")
-                elif event.from_user:
-                    app_logger.info("New message from user")
-                app_logger.info("ФИО: " + self.get_user_name(event.object.message["from_id"]))
-                app_logger.info("From: " + self.get_user_city(event.object.message["from_id"]))
-                app_logger.info("Text: " + event.object.message["text"])
-                app_logger.info(" --- ")
-
-    def get_user_name(self, user_id):
-        """ Получаем имя пользователя"""
-        try:
-            user_obj = self.vk_api.users.get(user_id=user_id)[0]
-            return f"{user_obj['first_name']} {user_obj['last_name']}"
-        except Exception as e:
-            app_logger.error(f"Error getting user name: {e}")
-            return None
-
-    def get_user_city(self, user_id):
-        """ Получаем город пользователя"""
-        try:
-            return self.vk_api.users.get(user_id=user_id, fields="city")[0]["city"]['title']
-        except Exception as e:
-            app_logger.error(f"Error getting user city: {e}")
-            return None
+            if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
+                if event.object.message["text"] == "/start":
+                    # Пользователь запустил бота
+                    start_handler(event, self.vk_api)
 
