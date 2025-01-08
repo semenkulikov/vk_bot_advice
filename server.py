@@ -36,11 +36,19 @@ class Server:
         app_logger.info("Тестовое сообщение отправлено!")
 
     def start(self):
+
         app_logger.info("Сервер запущен! Начинаю слушать сообщения...")
         for event in self.long_poll.listen():  # Слушаем сервер
-            # Пришло новое сообщение
-            if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
-                if event.object.message["text"] == "/start":
-                    # Пользователь запустил бота
-                    start_handler(event, self.vk_api)
+            try:
+                # Пришло новое сообщение
+                if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
+                    if event.object.message["text"] == "Узнать свободное время":
+                        pass
+                    elif event.object.message["text"] == "Забронировать время для консультации":
+                        pass
+                    else:
+                        # Пользователь запустил бота
+                        start_handler(event, self.vk_api)
+            except Exception as ex:
+                app_logger.error(f"Ошибка в работе сервера: {str(ex)}")
 

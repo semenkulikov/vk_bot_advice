@@ -11,6 +11,8 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     :param vk_api: VkApiMethod
     :return: None
     """
+    keyboard = open("keyboards/default.json", "r", encoding="UTF-8").read()
+
     user_id = event.object.message["from_id"]
     user_obj = vk_api_elem.users.get(user_id=user_id)[0]
     full_name = f"{user_obj['first_name']} {user_obj['last_name']}"
@@ -18,15 +20,16 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     phone = user_obj.get("contacts", None)
     birthday = user_obj.get("bdate", None)
 
-    app_logger.info(f"Новое сообщение от {full_name}. Адрес: {address}, телефон: {phone}, день рождения: {birthday}")
+    app_logger.info(f"Новое сообщение от {full_name}.")
     # Проверка, существует ли такой пользователь в базе данных
     user = User.get_or_none(User.user_id == user_id)
 
     if user is not None:
         # Если есть, то приветствуем.
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}!",
-                                  random_id=get_random_id())
+                                  message=f"Привет, {full_name}! Выбери любую из кнопок ниже для начала работы.",
+                                  random_id=get_random_id(),
+                                  keyboard=keyboard)
     else:
         user = User.create(user_id=user_id,
                           full_name=full_name,
@@ -35,7 +38,9 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
                           birthday=birthday)
         app_logger.info(f"Новый пользователь {full_name} добавлен в базу.")
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}! Я - бот для бронирования консультаций.",
-                                  random_id=get_random_id())
+                                  message=f"Привет, {full_name}! Я - бот для бронирования консультаций. Выбери любую из кнопок ниже для начала работы.",
+                                  random_id=get_random_id(),
+                                  keyboard=keyboard)
+
 
 
