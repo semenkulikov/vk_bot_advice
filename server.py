@@ -2,6 +2,7 @@ import vk_api.vk_api
 from vk_api.bot_longpoll import VkBotLongPoll
 from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
+from logger import app_logger
 
 
 class Server:
@@ -31,22 +32,22 @@ class Server:
                                   random_id=get_random_id())
 
     def send_test_message(self, admin_id):
-        # Посылаем сообщение администратору
         self.send_msg(admin_id, "Сервер запущен!")
+        app_logger.info("Тестовое сообщение отправлено!")
 
     def start(self):
-        print("Сервер запущен! Начинаю слушать сообщения...")
+        app_logger.info("Сервер запущен! Начинаю слушать сообщения...")
         for event in self.long_poll.listen():  # Слушаем сервер
             # Пришло новое сообщение
             if event.type == VkBotEventType.MESSAGE_NEW:
                 if event.from_chat:
-                    print("New message from chat")
+                    app_logger.info("New message from chat")
                 elif event.from_user:
-                    print("New message from user")
-                print("ФИО: " + self.get_user_name(event.object.message["from_id"]))
-                print("From: " + self.get_user_city(event.object.message["from_id"]))
-                print("Text: " + event.object.message["text"])
-                print(" --- ")
+                    app_logger.info("New message from user")
+                app_logger.info("ФИО: " + self.get_user_name(event.object.message["from_id"]))
+                app_logger.info("From: " + self.get_user_city(event.object.message["from_id"]))
+                app_logger.info("Text: " + event.object.message["text"])
+                app_logger.info(" --- ")
 
     def get_user_name(self, user_id):
         """ Получаем имя пользователя"""
@@ -54,7 +55,7 @@ class Server:
             user_obj = self.vk_api.users.get(user_id=user_id)[0]
             return f"{user_obj['first_name']} {user_obj['last_name']}"
         except Exception as e:
-            print(f"Error getting user name: {e}")
+            app_logger.error(f"Error getting user name: {e}")
             return None
 
     def get_user_city(self, user_id):
@@ -62,6 +63,6 @@ class Server:
         try:
             return self.vk_api.users.get(user_id=user_id, fields="city")[0]["city"]['title']
         except Exception as e:
-            print(f"Error getting user city: {e}")
+            app_logger.error(f"Error getting user city: {e}")
             return None
 
