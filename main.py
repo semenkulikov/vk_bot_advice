@@ -1,5 +1,8 @@
+from server_manager import server_1
+
+
 def main():
-    pass
+    server_1.start()
 
 
 if __name__ == '__main__':

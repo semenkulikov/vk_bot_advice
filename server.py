@@ -34,3 +34,34 @@ class Server:
         # Посылаем сообщение администратору
         self.send_msg(admin_id, "Сервер запущен!")
 
+    def start(self):
+        print("Сервер запущен! Начинаю слушать сообщения...")
+        for event in self.long_poll.listen():  # Слушаем сервер
+            # Пришло новое сообщение
+            if event.type == VkBotEventType.MESSAGE_NEW:
+                if event.from_chat:
+                    print("New message from chat")
+                elif event.from_user:
+                    print("New message from user")
+                print("ФИО: " + self.get_user_name(event.object.message["from_id"]))
+                print("From: " + self.get_user_city(event.object.message["from_id"]))
+                print("Text: " + event.object.message["text"])
+                print(" --- ")
+
+    def get_user_name(self, user_id):
+        """ Получаем имя пользователя"""
+        try:
+            user_obj = self.vk_api.users.get(user_id=user_id)[0]
+            return f"{user_obj['first_name']} {user_obj['last_name']}"
+        except Exception as e:
+            print(f"Error getting user name: {e}")
+            return None
+
+    def get_user_city(self, user_id):
+        """ Получаем город пользователя"""
+        try:
+            return self.vk_api.users.get(user_id=user_id, fields="city")[0]["city"]['title']
+        except Exception as e:
+            print(f"Error getting user city: {e}")
+            return None
+
