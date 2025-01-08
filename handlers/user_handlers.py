@@ -20,7 +20,7 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     phone = user_obj.get("contacts", None)
     birthday = user_obj.get("bdate", None)
 
-    app_logger.info(f"Новое сообщение от {full_name}.")
+    app_logger.info(f"Новое сообщение от {full_name}: {event.object.message["text"]}")
     # Проверка, существует ли такой пользователь в базе данных
     user = User.get_or_none(User.user_id == user_id)
 

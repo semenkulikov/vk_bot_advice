@@ -5,6 +5,9 @@ from vk_api.utils import get_random_id
 from logger import app_logger
 from handlers.user_handlers import start_handler
 from handlers.timetable_handlers import get_free_time_handler
+from handlers.reservation_handlers import reservation_date_handler, reservation_time_handler, reservation_handler
+import re
+
 
 class Server:
 
@@ -46,7 +49,17 @@ class Server:
                     if event.object.message["text"] == "Узнать свободное время":
                         get_free_time_handler(event, self.vk_api)
                     elif event.object.message["text"] == "Забронировать время для консультации":
-                        pass
+                        reservation_date_handler(event, self.vk_api)
+
+                    # Обработка текстовых сообщений - дат вида 2025-10-01 через регулярное выражение
+                    elif re.match(r"\d{4}-\d{2}-\d{2}", event.object.message["text"]):
+                        reservation_time_handler(event, self.vk_api, event.object.message["text"])
+
+                    # Обработка текстовых сообщений - времени бронирования вида (day) HH:MM - HH:MM
+                    # через регулярное выражение.
+                    elif re.match(r"\(\w+\) \d{2}:\d{2}:\d{2} - \d{2}:\d{2}:\d{2}",
+                                  event.object.message["text"]):
+                        reservation_handler(event, self.vk_api, event.object.message["text"])
                     else:
                         # Пользователь запустил бота
                         start_handler(event, self.vk_api)
