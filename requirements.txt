@@ -1,3 +1,4 @@
 python-dotenv
 Peewee
 vk_api
+schedule

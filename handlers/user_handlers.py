@@ -8,7 +8,7 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     """
     Хендлер для обработки сообщений от пользователей.
     :param event: VkBotEvent
-    :param vk_api: VkApiMethod
+    :param vk_api_elem: VkApiMethod
     :return: None
     """
     keyboard = open("keyboards/default.json", "r", encoding="UTF-8").read()

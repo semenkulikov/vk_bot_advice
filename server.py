@@ -4,6 +4,7 @@ from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
 from handlers.user_handlers import start_handler
+from handlers.timetable_handlers import get_free_time_handler
 
 class Server:
 
@@ -43,7 +44,7 @@ class Server:
                 # Пришло новое сообщение
                 if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
                     if event.object.message["text"] == "Узнать свободное время":
-                        pass
+                        get_free_time_handler(event, self.vk_api)
                     elif event.object.message["text"] == "Забронировать время для консультации":
                         pass
                     else:
