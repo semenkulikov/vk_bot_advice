@@ -7,7 +7,7 @@ from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
-from config import ADMIN_ID
+from config_data.config import ADMIN_ID
 import schedule
 
 

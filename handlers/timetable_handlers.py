@@ -17,7 +17,7 @@ def get_free_time_handler(event: VkBotEvent, vk_api_elem) -> None:
 
     # Получение объекта пользователя из БД.
     user = User.get_or_none(User.user_id == user_id)
-    app_logger.info(f"Запрос свободного времени от {user.full_name}.")
+    app_logger.info(f"Запрос свободного времени от {user.full_name if user is not None else user_id}.")
     if user is None:
         app_logger.warning(f"Внимание! Запрос свободного времени от неизвестного пользователя {user_id}")
     else:

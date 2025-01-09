@@ -2,6 +2,8 @@ from database.models import User
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
+from config_data.config import BASE_DIR
+import os
 
 
 def start_handler(event: VkBotEvent, vk_api_elem) -> None:
@@ -11,7 +13,7 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     :param vk_api_elem: VkApiMethod
     :return: None
     """
-    keyboard = open("keyboards/default.json", "r", encoding="UTF-8").read()
+    keyboard = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()
 
     user_id = event.object.message["from_id"]
     user_obj = vk_api_elem.users.get(user_id=user_id)[0]
