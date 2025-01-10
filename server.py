@@ -80,6 +80,6 @@ class Server:
                     else:
                         # Пользователь запустил бота
                         start_handler(event, self.vk_api)
-            except ValueError as ex:
+            except Exception as ex:
                 app_logger.error(f"Ошибка в работе сервера: {str(ex)}")
 
