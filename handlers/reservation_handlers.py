@@ -29,8 +29,14 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem) -> None:
 
     # Получение текущей даты, получение существующих дат из БД.
     cur_datetime = datetime.datetime.now()
-    existing_dates = sorted(list(set([t.date for t in Timetable.select().where(Timetable.date >= cur_datetime.date())])))
-
+    existing_dates = list()
+    for timetable_obj in Timetable.select().where(Timetable.date >= cur_datetime.date()):
+        if timetable_obj.date == cur_datetime.date():
+            if timetable_obj.start_time.hour >= cur_datetime.time().hour:
+                existing_dates.append(timetable_obj.date)
+        else:
+            existing_dates.append(timetable_obj.date)
+    existing_dates = sorted(list(set(existing_dates)))
     # Генерирует клавиатуру с выбором существующих дат
     keyboard = {
         "inline": True,
@@ -71,9 +77,11 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
         return
 
     # Получение свободных часов консультаций по дате из БД.
+    cur_time = datetime.datetime.now().time()
     free_times = [f"{timetable.start_time} - {timetable.end_time}"
                   for timetable in Timetable.select().where(Timetable.date == date_reserved,
-                                                            Timetable.is_booked == False)]
+                                                            Timetable.is_booked == False,
+                                                            Timetable.start_time.hour >= cur_time.hour)]
     if not free_times:
         app_logger.warning(f"Внимание! Нет свободных часов для бронирования консультации на {date_reserved} от {user.full_name}")
         # Отправка уведомления пользователю

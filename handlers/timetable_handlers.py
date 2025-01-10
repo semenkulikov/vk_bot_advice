@@ -43,6 +43,13 @@ def get_free_time() -> dict[str, list[str]]:
     free_time = {}
     for timetable in Timetable.select().where(Timetable.date >= cur_datetime.date()):
         if not timetable.is_booked:
-            free_time.setdefault(timetable.date.strftime("%d.%m.%Y"), []).append(f"{timetable.start_time} - {timetable.end_time}")
+            # Проверка, что время начала бронирования находится в будущем.
+            if timetable.date == cur_datetime.date():
+                if timetable.start_time.hour >= cur_datetime.time().hour:
+                    free_time.setdefault(timetable.date.strftime("%d.%m.%Y"),
+                                         []).append(f"{timetable.start_time} - {timetable.end_time}")
+            else:
+                free_time.setdefault(timetable.date.strftime("%d.%m.%Y"),
+                                     []).append(f"{timetable.start_time} - {timetable.end_time}")
 
     return free_time
