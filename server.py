@@ -3,7 +3,7 @@ from vk_api.bot_longpoll import VkBotLongPoll
 from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
-from handlers.user_handlers import start_handler, often_questions_handler
+from handlers.user_handlers import start_handler, often_questions_handler, add_birthday_handler, add_phone_handler
 from handlers.timetable_handlers import get_free_time_handler
 from handlers.reservation_handlers import reservation_date_handler, reservation_time_handler, reservation_handler
 
@@ -64,9 +64,22 @@ class Server:
                     elif re.match(r"\(\w+\) \d{2}:\d{2}:\d{2} - \d{2}:\d{2}:\d{2}",
                                   event.object.message["text"]):
                         reservation_handler(event, self.vk_api, event.object.message["text"])
+
+                    # Обработка текстовых сообщений - даты рождения вида 12.12.1212
+                    # через регулярное выражение.
+                    elif re.match(r"\d{2}.\d{2}.\d{4}", event.object.message["text"]):
+                        add_birthday_handler(event, self.vk_api, event.object.message["text"])
+
+                    # Обработка текстовых сообщений - номера телефона вида +79991234567
+                    # через регулярное выражение.
+                    elif re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
+                                  event.object.message["text"]):
+                        add_phone_handler(event, self.vk_api, event.object.message["text"])
+
+                    # Обработка текстовых сообщений - прочие тексты
                     else:
                         # Пользователь запустил бота
                         start_handler(event, self.vk_api)
-            except Exception as ex:
+            except ValueError as ex:
                 app_logger.error(f"Ошибка в работе сервера: {str(ex)}")
 

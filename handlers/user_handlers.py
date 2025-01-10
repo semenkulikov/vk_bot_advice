@@ -29,20 +29,35 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     if user is not None:
         # Если есть, то приветствуем.
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}! Выбери любую из кнопок ниже для начала работы.",
+                                  message=f"Привет, {full_name}! Выберите любую из кнопок ниже для начала работы.",
                                   random_id=get_random_id(),
                                   keyboard=keyboard)
     else:
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message=f"Привет, {full_name}! Я - бот для бронирования консультаций. Выберите любую из кнопок ниже для начала работы.",
+                                  random_id=get_random_id(),
+                                  keyboard=keyboard)
+        if phone is None:
+            vk_api_elem.messages.send(peer_id=user_id,
+                                      message=f"Внимание! Не удалось получить номер телефона.\n"
+                                              f"Напишите его отдельно в формате +79991234567, без номера телефона вы не "
+                                              f"сможете записаться на консультацию!",
+                                      random_id=get_random_id(),
+                                      keyboard=keyboard)
+        if birthday is None:
+            vk_api_elem.messages.send(peer_id=user_id,
+                                      message=f"Внимание! Не удалось получить дату рождения.\n"
+                                              f"Напишите ее отдельно в формате 12.13.1415, иначе вы не "
+                                              f"сможете записаться на консультацию!",
+                                      random_id=get_random_id(),
+                                      keyboard=keyboard)
         user = User.create(user_id=user_id,
                           full_name=full_name,
                           phone=phone,
                           address=address,
                           birthday=birthday)
         app_logger.info(f"Новый пользователь {full_name} добавлен в базу.")
-        vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}! Я - бот для бронирования консультаций. Выбери любую из кнопок ниже для начала работы.",
-                                  random_id=get_random_id(),
-                                  keyboard=keyboard)
+
 
 def often_questions_handler(event: VkBotEvent, vk_api_elem) -> None:
     """
@@ -69,4 +84,50 @@ def often_questions_handler(event: VkBotEvent, vk_api_elem) -> None:
     """
     vk_api_elem.messages.send(peer_id=user_id,
                               message=f"Здесь собраны ответы на основные вопросы.\n{result_text}",
+                              random_id=get_random_id())
+
+
+def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
+    """
+    Хендлер для добавления даты рождения пользователя
+    :param birthday: дата рождения
+    :param event: VkBotEvent
+    :param vk_api_elem: VkApiMethod
+    :return: None
+    """
+    user_id = event.object.message["from_id"]
+    user = User.get_or_none(User.user_id == user_id)
+
+    app_logger.info(f"Запрос добавления даты рождения {birthday} от {user.full_name}.")
+    user.birthday = birthday
+    user.save()
+
+    # Отправляем пользователю сообщение об успешном добавлении даты рождения
+
+    vk_api_elem.messages.send(peer_id=user_id,
+                              message=f"Дата рождения успешно добавлена!",
+                              random_id=get_random_id())
+
+
+def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
+    """
+    Хендлер для добавления номера телефона пользователя
+    :param phone_number: номер телефона
+    :param event: VkBotEvent
+    :param vk_api_elem: VkApiMethod
+    :return: None
+    """
+    user_id = event.object.message["from_id"]
+    user = User.get_or_none(User.user_id == user_id)
+
+    app_logger.info(f"Запрос добавления номера телефона {phone_number} от {user.full_name}.")
+
+    # Добавляем номер телефона в базу данных
+    user.phone = phone_number
+    user.save()
+
+    # Отправляем пользователю сообщение об успешном добавлении номера телефона
+
+    vk_api_elem.messages.send(peer_id=user_id,
+                              message=f"Номер телефона {phone_number} успешно добавлен!",
                               random_id=get_random_id())

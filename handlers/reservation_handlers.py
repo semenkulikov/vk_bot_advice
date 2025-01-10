@@ -201,6 +201,33 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
             cur_t = t
             break
 
+    user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
+    user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
+                                  day=user_birthday_list[0])
+    # Если профиль пользователя не содержит телефон, или ему меньше 21 года, то блокируем
+    if user.phone is None:
+        app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
+                           f"на {datetime_reserved} отклонен: нет телефона")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="Бронирование не удалось: не указан номер телефона!\n"
+                                          "Напишите ваш номер телефона в формате: +79991234567",
+                                  random_id=get_random_id())
+        return
+    elif user.birthday is None:
+        app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
+                           f"на {datetime_reserved} отклонен: не указан день рождения")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="Бронирование не удалось: не указан день рождения!\n"
+                                          "Напишите ваш день рождения в формате: 12.13.1415",
+                                  random_id=get_random_id())
+        return
+    elif (datetime.datetime.now().date() - user_birthday).days <= 7665:
+        app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
+                           f"на {datetime_reserved} отклонен: менее 21 года")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="Бронирование не удалось: вы должны быть старше 21 года!",
+                                  random_id=get_random_id())
+        return
     # Присвоение найденному Timetable объекту user_id и изменение поля is_booked
     if cur_t is not None:
         cur_t.user_id = user.id
@@ -225,6 +252,8 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
         vk_api_elem.messages.send(peer_id=ADMIN_ID,
                                   message=f"Новое бронирование консультации:\n"
                                           f"Пользователь: {user.full_name}\n"
+                                          f"Номер телефона: {user.phone}\n"
+                                          f"Дата рождения: {user.birthday} (больше 21)"
                                           f"Время: {start_time} - {end_time}\n"
                                           f"Дата: {cur_t.date}\n",
                                   random_id=get_random_id())
