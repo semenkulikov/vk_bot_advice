@@ -3,9 +3,10 @@ from vk_api.bot_longpoll import VkBotLongPoll
 from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
-from handlers.user_handlers import start_handler
+from handlers.user_handlers import start_handler, often_questions_handler
 from handlers.timetable_handlers import get_free_time_handler
 from handlers.reservation_handlers import reservation_date_handler, reservation_time_handler, reservation_handler
+
 import re
 
 
@@ -48,6 +49,8 @@ class Server:
                 if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
                     if event.object.message["text"] == "Узнать свободное время":
                         get_free_time_handler(event, self.vk_api)
+                    elif event.object.message["text"] == "Частые вопросы":
+                        often_questions_handler(event, self.vk_api)
                     elif event.object.message["text"] == "Личный прием":
                         reservation_date_handler(event, self.vk_api, online_advice=False)
                     elif event.object.message["text"] == "Онлайн прием":
