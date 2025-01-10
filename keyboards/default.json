@@ -17,7 +17,15 @@
         "action":{
           "type":"text",
           "payload":"{\"button\": \"2\"}",
-          "label":"Забронировать время для консультации"
+          "label":"Личный прием"
+        },
+        "color":"positive"
+      },
+      {
+        "action":{
+          "type":"text",
+          "payload":"{\"button\": \"2\"}",
+          "label":"Онлайн прием"
         },
         "color":"positive"
       }

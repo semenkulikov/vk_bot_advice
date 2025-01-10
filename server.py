@@ -48,9 +48,10 @@ class Server:
                 if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
                     if event.object.message["text"] == "Узнать свободное время":
                         get_free_time_handler(event, self.vk_api)
-                    elif event.object.message["text"] == "Забронировать время для консультации":
-                        reservation_date_handler(event, self.vk_api)
-
+                    elif event.object.message["text"] == "Личный прием":
+                        reservation_date_handler(event, self.vk_api, online_advice=False)
+                    elif event.object.message["text"] == "Онлайн прием":
+                        reservation_date_handler(event, self.vk_api, online_advice=True)
                     # Обработка текстовых сообщений - дат вида 2025-10-01 через регулярное выражение
                     elif re.match(r"\d{4}-\d{2}-\d{2}", event.object.message["text"]):
                         reservation_time_handler(event, self.vk_api, event.object.message["text"])

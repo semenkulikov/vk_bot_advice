@@ -11,9 +11,10 @@ from config_data.config import ADMIN_ID
 import schedule
 
 
-def reservation_date_handler(event: VkBotEvent, vk_api_elem) -> None:
+def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False) -> None:
     """
     Хендлер для бронирования определенного времени для консультации.
+    :param online_advice: Онлайн прием
     :param event: VkBotEvent
     :param vk_api_elem: VkApiMethod
     :return: None
@@ -22,35 +23,69 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem) -> None:
 
     # Получение объекта пользователя из БД.
     user = User.get_or_none(User.user_id == user_id)
-    app_logger.info(f"Запрос бронирования времени от {user.full_name}")
+
     if user is None:
         app_logger.warning(f"Внимание! Запрос бронирования времени от неизвестного пользователя {user_id}")
         return
 
+    if online_advice is True:
+        app_logger.info(f"Запрос бронирования времени на онлайн прием от {user.full_name}")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="Вы записываетесь на онлайн консультацию. "
+                                          "Она проходит по четвергам и пятницам с 13:00 до 19:00.",
+                                  random_id=get_random_id())
+
+    else:
+        app_logger.info(f"Запрос бронирования времени на личный прием от {user.full_name}")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="Вы записываетесь на личную консультацию. "
+                                          "Она проходит по понедельникам, вторникам и средам с 10:00 до 18:00.\n"
+                                          "Перерыв на обед - с 12:00 до 14:00",
+                                  random_id=get_random_id())
     # Получение текущей даты, получение существующих дат из БД.
     cur_datetime = datetime.datetime.now()
     existing_dates = list()
     for timetable_obj in Timetable.select().where(Timetable.date >= cur_datetime.date()):
         if timetable_obj.date == cur_datetime.date():
             if timetable_obj.start_time.hour >= cur_datetime.time().hour:
-                existing_dates.append(timetable_obj.date)
+                if (online_advice is False and timetable_obj.date.weekday() in (0, 1, 2) or
+                        online_advice is True and timetable_obj.date.weekday() in (3, 4)):
+                    existing_dates.append(timetable_obj.date)
         else:
-            existing_dates.append(timetable_obj.date)
+            if (online_advice is False and timetable_obj.date.weekday() in (0, 1, 2) or
+                    online_advice is True and timetable_obj.date.weekday() in (3, 4)):
+                existing_dates.append(timetable_obj.date)
     existing_dates = sorted(list(set(existing_dates)))
     # Генерирует клавиатуру с выбором существующих дат
-    keyboard = {
-        "inline": True,
-        "buttons": [
-            [
-                {
-                    "action": {
-                        "type": "text",
-                        "label": f"{str(date_str)}"
-                    },
-                    "color": "primary"
-                }
-            ] for date_str in existing_dates]
-    }
+    if len(existing_dates) > 8:
+        keyboard = {
+            "inline": True,
+            "buttons": []
+        }
+        for i, date_str in enumerate(existing_dates):
+            if i % 2 == 0:
+                keyboard["buttons"].append([])
+            keyboard["buttons"][i // 2].append({
+                "action": {
+                    "type": "text",
+                    "label": f"{str(date_str)}"
+                },
+                "color": "primary"
+            })
+    else:
+        keyboard = {
+            "inline": True,
+            "buttons": [
+                [
+                    {
+                        "action": {
+                            "type": "text",
+                            "label": f"{str(date_str)}"
+                        },
+                        "color": "primary"
+                    }
+                ] for date_str in existing_dates]
+        }
     # Отправляет пользователю клавиатуру с выбором даты.
     app_logger.info(f"Отправка клавиатуры с датами для бронирования консультации {user.full_name}")
     vk_api_elem.messages.send(peer_id=user_id,
@@ -100,7 +135,7 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
             "buttons": []
         }
         day = date_reserved.split("-")[-1]
-        for i, time_str in enumerate(free_times):
+        for i, time_str in enumerate(free_times[:10]):
             if i % 2 == 0:
                 keyboard["buttons"].append([])
             keyboard["buttons"][i // 2].append({
@@ -114,6 +149,24 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
         app_logger.info(f"Отправка клавиатуры с временами для бронирования консультации {user.full_name}")
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Выберите время бронирования консультации:",
+                                  random_id=get_random_id(),
+                                  keyboard=json.dumps(keyboard))
+        keyboard = {
+            "inline": True,
+            "buttons": []
+        }
+        for i, time_str in enumerate(free_times[10:]):
+            if i % 2 == 0:
+                keyboard["buttons"].append([])
+            keyboard["buttons"][i // 2].append({
+                "action": {
+                    "type": "text",
+                    "label": f"({day}) {time_str}"
+                },
+                "color": "primary"
+            })
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="ᅠ",
                                   random_id=get_random_id(),
                                   keyboard=json.dumps(keyboard))
 
@@ -198,7 +251,7 @@ def send_notification(timetable_id: int, vk_api_elem):
 
 
     # Создание асинхронных потоков таймеров.
-    if consultation_datetime.time().hour >= 11:
+    if consultation_datetime.time().hour >= 12:
         if datetime.datetime.now().date() < notification_datetime_previous_day.date():
             threading.Timer((notification_datetime_previous_day - cur_datetime).total_seconds(),
                             send_notification_message,
