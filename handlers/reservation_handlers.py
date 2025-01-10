@@ -77,11 +77,16 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
         return
 
     # Получение свободных часов консультаций по дате из БД.
-    cur_time = datetime.datetime.now().time()
-    free_times = [f"{timetable.start_time} - {timetable.end_time}"
-                  for timetable in Timetable.select().where(Timetable.date == date_reserved,
-                                                            Timetable.is_booked == False,
-                                                            Timetable.start_time.hour >= cur_time.hour)]
+    cur_time = datetime.datetime.now()
+    free_times = []
+    for timetable in Timetable.select().where(Timetable.date == date_reserved,
+                                              Timetable.is_booked == False,
+                                              ):
+        if timetable.date == cur_time.date():
+            if timetable.start_time.hour >= cur_time.time().hour:
+                free_times.append(f"{timetable.start_time} - {timetable.end_time}")
+        else:
+            free_times.append(f"{timetable.start_time} - {timetable.end_time}")
     if not free_times:
         app_logger.warning(f"Внимание! Нет свободных часов для бронирования консультации на {date_reserved} от {user.full_name}")
         # Отправка уведомления пользователю
@@ -157,7 +162,7 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                                   random_id=get_random_id())
 
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Вам будет отправлено напоминание за 2 часа до консультации. Ожидайте",
+                                  message=f"Вам будет отправлена серия напоминаний до консультации. Ожидайте",
                                   random_id=get_random_id())
 
         # Запуск напоминания о консультации за 2 часа до начала консультации
@@ -180,35 +185,47 @@ def send_notification(timetable_id: int, vk_api_elem):
     app_logger.info(f"Запуск асинхронного потока для отправки уведомления.")
     timetable = Timetable.get_by_id(timetable_id)
     user = User.get_by_id(timetable.user_id)
+    consultation_datetime = datetime.datetime.combine(timetable.date, timetable.start_time)
+    cur_datetime = datetime.datetime.now()
 
+    # Вычисление точной даты: за день до приема до начала консультации previous_day вида 2025-10-01
+    previous_day = timetable.date - datetime.timedelta(days=1)
+    notification_datetime_previous_day = datetime.datetime.combine(previous_day, datetime.time(hour=9, minute=0))
+    notification_datetime_current_day = datetime.datetime.combine(timetable.date, datetime.time(hour=9, minute=0))
     # Вычисление точной даты и времени: за два часа до начала консультации notification_datetime вида 2025-10-01 18:00
-    notification_datetime = (datetime.datetime.combine(timetable.date, timetable.start_time) -
+    notification_datetime_0 = (datetime.datetime.combine(timetable.date, timetable.start_time) -
                              datetime.timedelta(hours=2))
 
-    # Создание асинхронного потока
-    threading.Thread(target=lambda: send_notification_target(user, notification_datetime, vk_api_elem)).start()
 
-def send_notification_target(user: User, notification_datetime: datetime, vk_api_elem):
-    """ Функция для запланирования отправки уведомления через schedule
-    :param vk_api_elem: VkApiMethod
-    :param notification_datetime: точное время отправки уведомления.
-    :param user: объект пользователя.
-    """
-    app_logger.info(f"Запланировано отправление уведомления {user.full_name} на {notification_datetime}")
+    # Создание асинхронных потоков таймеров.
+    if consultation_datetime.time().hour >= 11:
+        if datetime.datetime.now().date() < notification_datetime_previous_day.date():
+            threading.Timer((notification_datetime_previous_day - cur_datetime).total_seconds(),
+                            send_notification_message,
+                            args=(user, vk_api_elem, consultation_datetime)).start()
+            app_logger.info(f"Запланировано отправление уведомления {user.full_name} на "
+                            f"{notification_datetime_previous_day}")
 
-    schedule.every().day.at(notification_datetime.strftime("%H:%M")).do(send_notification_message, user, vk_api_elem)
+        threading.Timer((notification_datetime_current_day - cur_datetime).total_seconds(),
+                        send_notification_message,
+                        args=(user, vk_api_elem, consultation_datetime)).start()
+        app_logger.info(f"Запланировано отправление уведомления {user.full_name} на "
+                        f"{notification_datetime_current_day}")
+    if notification_datetime_0 != notification_datetime_current_day:
+        threading.Timer((notification_datetime_0 - cur_datetime).total_seconds(),
+                        send_notification_message,
+                        args=(user, vk_api_elem, consultation_datetime)).start()
+        app_logger.info(f"Запланировано отправление уведомления {user.full_name} на "
+                        f"{notification_datetime_0}")
 
-    # Ожидание завершения всех заданий в schedule
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
 
-def send_notification_message(user: User, vk_api_elem):
+def send_notification_message(user: User, vk_api_elem, consultation_datetime):
     """ Функция для отправки уведомления пользователю
     :param vk_api_elem: VkApiMethod
     :param user: объект пользователя
+    :param consultation_datetime: время консультации
     """
     app_logger.info(f"Отправка уведомления пользователю {user.full_name}")
     vk_api_elem.messages.send(peer_id=user.user_id,
-                              message=f"Напоминание!\nУ вас есть консультация на {datetime.datetime.now().strftime('%d.%m.%Y %H:%M')}.",
+                              message=f"Напоминание!\nУ вас есть консультация на {consultation_datetime}.",
                               random_id=get_random_id())
