@@ -47,7 +47,7 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
         if birthday is None:
             vk_api_elem.messages.send(peer_id=user_id,
                                       message=f"Внимание! Не удалось получить дату рождения.\n"
-                                              f"Напишите ее отдельно в формате 12.13.1415, иначе вы не "
+                                              f"Напишите ее отдельно в формате 12.13.1415 (день, месяц, год), иначе вы не "
                                               f"сможете записаться на консультацию!",
                                       random_id=get_random_id(),
                                       keyboard=keyboard)
