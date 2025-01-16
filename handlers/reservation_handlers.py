@@ -1,14 +1,12 @@
 import datetime
 import json
 import threading
-import time
 
 from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
 from config_data.config import ADMIN_ID
-import schedule
 
 
 def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False) -> None:
@@ -210,7 +208,7 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
         app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
                            f"на {datetime_reserved} отклонен: нет телефона")
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message="Бронирование не удалось: не указан номер телефона!\n"
+                                  message="Пожалуйста, укажите ваш номер телефона для того, чтобы мы могли выслать напоминание о времени вашей записи!\n"
                                           "Напишите ваш номер телефона в формате: +79991234567",
                                   random_id=get_random_id())
         return

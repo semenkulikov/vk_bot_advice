@@ -29,12 +29,13 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     if user is not None:
         # Если есть, то приветствуем.
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}! Выберите любую из кнопок ниже для начала работы.",
+                                  message=f"Здравствуйте, {full_name}! Выберите любую из кнопок ниже для начала работы.",
                                   random_id=get_random_id(),
                                   keyboard=keyboard)
     else:
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Привет, {full_name}! Я - бот для бронирования консультаций. Выберите любую из кнопок ниже для начала работы.",
+                                  message=f"Здравствуйте, {full_name}! Я - бот для бронирования консультаций. "
+                                          f"Выберите любую из кнопок ниже для начала работы.",
                                   random_id=get_random_id(),
                                   keyboard=keyboard)
         if phone is None:
@@ -129,5 +130,5 @@ def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
     # Отправляем пользователю сообщение об успешном добавлении номера телефона
 
     vk_api_elem.messages.send(peer_id=user_id,
-                              message=f"Номер телефона {phone_number} успешно добавлен!",
+                              message="Спасибо, мы пришлем вам напоминание о времени вашей записи!",
                               random_id=get_random_id())
