@@ -72,9 +72,9 @@ def generate_time_tables():
     """ Функция для асинхронного запуска функции create_time_tables каждые 3 недели """
     while True:
         app_logger.info("Генерация графика расписания консультаций и удаление старых записей...")
-        threading.Timer(3 * 7 * 24 * 60 * 60, delete_time_tables).start()
-        threading.Timer(3 * 7 * 24 * 60 * 60, create_time_tables).start()
-        sleep(3 * 7 * 24 * 60 * 60)
+        threading.Timer(24 * 60 * 60, delete_time_tables).start()
+        threading.Timer(24 * 60 * 60, create_time_tables).start()
+        sleep(24 * 60 * 60)
 
 def start_generate():
     """ Запуск генерации графика расписания консультаций в фоновом режиме """
