@@ -57,21 +57,26 @@ class Server:
                         reservation_date_handler(event, self.vk_api, online_advice=True)
                     # Обработка текстовых сообщений - дат вида 2025-10-01 через регулярное выражение
                     elif re.match(r"\d{4}-\d{2}-\d{2}", event.object.message["text"]):
-                        reservation_time_handler(event, self.vk_api, event.object.message["text"])
+                        reservation_time_handler(event, self.vk_api,
+                                                 re.match(r"\d{4}-\d{2}-\d{2}",
+                                                          event.object.message["text"])[0])
 
                     # Обработка текстовых сообщений - времени бронирования вида (day) HH:MM - HH:MM
                     # через регулярное выражение.
-                    elif re.match(r"\(\w+\) \d{2}:\d{2}:\d{2} - \d{2}:\d{2}:\d{2}",
+                    elif re.match(r"\(\w+\) \d{2}:\d{2} - \d{2}:\d{2}",
                                   event.object.message["text"]):
-                        reservation_handler(event, self.vk_api, event.object.message["text"])
+                        reservation_handler(event, self.vk_api,
+                                            re.match(r"\(\w+\) \d{2}:\d{2} - \d{2}:\d{2}",
+                                                     event.object.message["text"])[0])
 
                     # Обработка текстовых сообщений - даты рождения вида 12.12.1212
                     # через регулярное выражение.
 
                     elif re.match(r"\d{1,2}.\d{1,2}.\d{4}", event.object.message["text"]):
-                        date_list = event.object.message["text"].split(".")
+                        res = re.match(r"\d{1,2}.\d{1,2}.\d{4}", event.object.message["text"])[0]
+                        date_list = res.split(".")
                         if 1 <= int(date_list[0]) <= 31 and 1 <= int(date_list[1]) <= 12:
-                            add_birthday_handler(event, self.vk_api, event.object.message["text"])
+                            add_birthday_handler(event, self.vk_api, res)
                         else:
                             self.vk_api.messages.send(peer_id=event.object.message["from_id"],
                                                       message=f"Дата рождения некорректна!",
@@ -81,7 +86,9 @@ class Server:
                     # через регулярное выражение.
                     elif re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
                                   event.object.message["text"]):
-                        add_phone_handler(event, self.vk_api, event.object.message["text"])
+                        add_phone_handler(event, self.vk_api,
+                                          re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
+                                                   event.object.message["text"])[0])
 
                     # Обработка текстовых сообщений - прочие тексты
                     else:
