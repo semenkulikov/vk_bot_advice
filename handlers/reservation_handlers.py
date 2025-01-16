@@ -87,7 +87,7 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False
     # Отправляет пользователю клавиатуру с выбором даты.
     app_logger.info(f"Отправка клавиатуры с датами для бронирования консультации {user.full_name}")
     vk_api_elem.messages.send(peer_id=user_id,
-                              message="Выберите дату бронирования консультации:",
+                              message="Выберите дату:",
                               random_id=get_random_id(),
                               keyboard=json.dumps(keyboard))
 
@@ -146,7 +146,7 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
         # Отправление пользователю клавиатуры с выбором времени.
         app_logger.info(f"Отправка клавиатуры с временами для бронирования консультации {user.full_name}")
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message="Выберите время бронирования консультации:",
+                                  message="Выберите время:",
                                   random_id=get_random_id(),
                                   keyboard=json.dumps(keyboard))
         keyboard = {
@@ -238,13 +238,14 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
         app_logger.info(f"Бронирование консультации успешно завершено от {user.full_name} на {cur_t.date}")
         # Отправка уведомления пользователю
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Бронирование консультации успешно завершено.\n"
-                                          f"Время: {start_time} - {end_time}\n"
+                                  message=f"Вы записаны на консультацию!\n"
+                                          f"Ваше время: {start_time} - {end_time}\n"
                                           f"Дата: {cur_t.date}\n",
                                   random_id=get_random_id())
 
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Вам будет отправлена серия напоминаний до консультации. Ожидайте",
+                                  message=f"Мы отправим вам напоминание о времени "
+                                          f"вашей записи за 2 часа до начала приема!",
                                   random_id=get_random_id())
 
         # Запуск напоминания о консультации за 2 часа до начала консультации

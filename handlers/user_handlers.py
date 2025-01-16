@@ -4,6 +4,16 @@ from vk_api.utils import get_random_id
 from logger import app_logger
 from config_data.config import BASE_DIR
 import os
+import datetime
+
+
+start_text = """
+Здравствуйте, {full_name}! Если вы хотите записаться на консультацию, пожалуйста выберите одну из двух зеленых кнопок, расположенных ниже.
+
+Если вас интересует дополнительная информация — выберите кнопку «Частые вопросы», возможно там вы найдете ответ на свой вопрос.
+
+ВАЖНО! Для записи на консультацию, вам должно быть не менее 21 года.
+"""
 
 
 def start_handler(event: VkBotEvent, vk_api_elem) -> None:
@@ -29,13 +39,12 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     if user is not None:
         # Если есть, то приветствуем.
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Здравствуйте, {full_name}! Выберите любую из кнопок ниже для начала работы.",
+                                  message=start_text.format(full_name=full_name),
                                   random_id=get_random_id(),
                                   keyboard=keyboard)
     else:
         vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Здравствуйте, {full_name}! Я - бот для бронирования консультаций. "
-                                          f"Выберите любую из кнопок ниже для начала работы.",
+                                  message=start_text.format(full_name=full_name),
                                   random_id=get_random_id(),
                                   keyboard=keyboard)
         if phone is None:
@@ -108,6 +117,18 @@ def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
     vk_api_elem.messages.send(peer_id=user_id,
                               message=f"Дата рождения успешно добавлена!",
                               random_id=get_random_id())
+
+    user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
+    user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
+                                  day=user_birthday_list[0])
+
+    if (datetime.datetime.now().date() - user_birthday).days <= 7665:
+        app_logger.warning(f"Внимание! Пользователь {user.full_name} слишком малой! Ему менее 21 года ({birthday})")
+        vk_api_elem.messages.send(peer_id=user_id,
+                                  message="ВАЖНО! Чтобы я могла записать вас на консультацию, "
+                                          "ваш возраст должен быть не менее 21 года.",
+                                  random_id=get_random_id())
+
 
 
 def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
