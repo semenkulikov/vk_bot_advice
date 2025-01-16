@@ -117,9 +117,9 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
                                               ):
         if timetable.date == cur_time.date():
             if timetable.start_time.hour >= cur_time.time().hour:
-                free_times.append(f"{timetable.start_time} - {timetable.end_time}")
+                free_times.append(f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}")
         else:
-            free_times.append(f"{timetable.start_time} - {timetable.end_time}")
+            free_times.append(f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}")
     if not free_times:
         app_logger.warning(f"Внимание! Нет свободных часов для бронирования консультации на {date_reserved} от {user.full_name}")
         # Отправка уведомления пользователю

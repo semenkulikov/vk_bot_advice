@@ -49,9 +49,11 @@ def get_free_time() -> dict[str, list[str]]:
                 if timetable.date == cur_datetime.date():
                     if timetable.start_time.hour >= cur_datetime.time().hour:
                         free_time.setdefault(timetable.date.strftime("%d.%m.%Y"),
-                                             []).append(f"{timetable.start_time} - {timetable.end_time}")
+                                             []).append(f"{timetable.start_time.strftime("%H:%M")} - "
+                                                        f"{timetable.end_time.strftime("%H:%M")}")
                 else:
                     free_time.setdefault(timetable.date.strftime("%d.%m.%Y"),
-                                         []).append(f"{timetable.start_time} - {timetable.end_time}")
+                                         []).append(f"{timetable.start_time.strftime("%H:%M")} - "
+                                                    f"{timetable.end_time.strftime("%H:%M")}")
 
     return free_time
