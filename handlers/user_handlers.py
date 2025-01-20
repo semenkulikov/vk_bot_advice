@@ -168,10 +168,12 @@ def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
 
         report_text = "Отчет о консультациях на сегодня:\n\nВремя                  Пользователь\n"
         # Получаем все записи Timetable на сегодня.
-        today_timetables = Timetable.select().where(Timetable.date == datetime.date.today(),
-                                                    Timetable.is_booked == True)
-
+        today_timetables = Timetable.select().where(Timetable.is_booked == True)
+        cur_date = datetime.date.today()
         for timetable in today_timetables:
+            if timetable.date != cur_date:
+                report_text += f"\nДата: {timetable.date}\n\n"
+                cur_date = timetable.date
             cur_user: User = User.get_by_id(timetable.user_id)
             report_text += (f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}      "
                             f"{cur_user.full_name}, {cur_user.phone}, {cur_user.birthday}, "
@@ -184,4 +186,7 @@ def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
                                   message=report_text,
                                   random_id=get_random_id())
         return
-    app_logger.warning(f"Внимание! Пользователь c id {event.object.message["from_id"]} вызвал команду /get_report!")
+    app_logger.warning(f"Внимание! Пользователь c id {event.object.message["from_id"]} запросил отчет!")
+    vk_api_elem.messages.send(peer_id=event.object.message["from_id"],
+                              message="Информация недоступна",
+                              random_id=get_random_id())

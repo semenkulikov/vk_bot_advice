@@ -91,7 +91,7 @@ class Server:
                                           re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
                                                    event.object.message["text"])[0])
 
-                    elif event.object.message["text"] == "/get_report":
+                    elif event.object.message["text"] == "Отчёт":
                         get_report_handler(event, self.vk_api)
                     # Обработка текстовых сообщений - прочие тексты
                     else:

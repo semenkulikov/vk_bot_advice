@@ -39,6 +39,16 @@
         },
         "color":"positive"
       }
+    ],
+    [
+      {
+        "action":{
+          "type":"text",
+          "payload":"{\"button\": \"1\"}",
+          "label":"Отчёт"
+        },
+        "color":"primary"
+      }
     ]
   ]
 }
