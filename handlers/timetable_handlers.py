@@ -1,5 +1,6 @@
 import datetime
 
+from config_data.config import KEYBOARD
 from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
@@ -27,11 +28,13 @@ def get_free_time_handler(event: VkBotEvent, vk_api_elem) -> None:
         # Отправляем пользователю список свободного времени.
         vk_api_elem.messages.send(peer_id=user_id,
                                   message=f"Расписание свободных часов на неделю:",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
         for date, times in free_time.items():
             vk_api_elem.messages.send(peer_id=user_id,
                                       message=f"{date}:\n{'\n'.join(times)}",
-                                      random_id=get_random_id())
+                                      random_id=get_random_id(),
+                                      keyboard=KEYBOARD)
 
 
 def get_free_time() -> dict[str, list[str]]:

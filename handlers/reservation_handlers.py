@@ -6,7 +6,7 @@ from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
-from config_data.config import ADMIN_ID
+from config_data.config import ADMIN_ID, KEYBOARD
 
 
 def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False) -> None:
@@ -31,7 +31,8 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Вы записываетесь на онлайн консультацию. "
                                           "Она проходит по четвергам и пятницам с 13:00 до 19:00.",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
 
     else:
         app_logger.info(f"Запрос бронирования времени на личный прием от {user.full_name}")
@@ -39,7 +40,8 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False
                                   message="Вы записываетесь на личную консультацию. "
                                           "Она проходит по понедельникам, вторникам и средам с 10:00 до 18:00.\n"
                                           "Перерыв на обед - с 12:00 до 14:00",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
     # Получение текущей даты, получение существующих дат из БД.
     cur_datetime = datetime.datetime.now()
     existing_dates = list()
@@ -125,7 +127,8 @@ def reservation_time_handler(event: VkBotEvent, vk_api_elem, date_reserved: str)
         # Отправка уведомления пользователю
         vk_api_elem.messages.send(peer_id=user_id,
                                   message=f"Извините, но на {date_reserved} нет свободных часов для бронирования консультации.",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
     else:
         # Генерирование клавиатуры с выбором существующих часов (по 2 кнопки в ряд)
         keyboard = {
@@ -210,7 +213,8 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Пожалуйста, укажите ваш номер телефона для того, чтобы мы могли выслать напоминание о времени вашей записи!\n"
                                           "Напишите ваш номер телефона в формате: +79991234567",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
         return
     elif user.birthday is None:
         app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
@@ -218,7 +222,8 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Бронирование не удалось: не указан день рождения!\n"
                                           "Напишите ваш день рождения в формате: 12.13.1415 (день, месяц, год)",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
         return
     user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
     user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
@@ -228,7 +233,8 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                            f"на {datetime_reserved} отклонен: менее 21 года")
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Бронирование не удалось: вы должны быть старше 21 года!",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
         return
     # Присвоение найденному Timetable объекту user_id и изменение поля is_booked
     if cur_t is not None:
@@ -241,12 +247,14 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                                   message=f"Вы записаны на консультацию!\n"
                                           f"Ваше время: {start_time} - {end_time}\n"
                                           f"Дата: {cur_t.date}\n",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
 
         vk_api_elem.messages.send(peer_id=user_id,
                                   message=f"Мы отправим вам напоминание о времени "
                                           f"вашей записи за 2 часа до начала приема!",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
 
         # Запуск напоминания о консультации за 2 часа до начала консультации
         send_notification(cur_t.id, vk_api_elem)
@@ -259,7 +267,8 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                                           f"Дата рождения: {user.birthday} (больше 21)\n"
                                           f"Время: {start_time} - {end_time}\n"
                                           f"Дата: {cur_t.date}\n",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
 
 
 def send_notification(timetable_id: int, vk_api_elem):
@@ -313,4 +322,5 @@ def send_notification_message(user: User, vk_api_elem, consultation_datetime):
     app_logger.info(f"Отправка уведомления пользователю {user.full_name}")
     vk_api_elem.messages.send(peer_id=user.user_id,
                               message=f"Напоминание!\nУ вас есть консультация на {consultation_datetime}.",
-                              random_id=get_random_id())
+                              random_id=get_random_id(),
+                              keyboard=KEYBOARD)

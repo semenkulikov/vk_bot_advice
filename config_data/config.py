@@ -10,4 +10,4 @@ GROUP_ID = os.getenv("GROUP_ID")
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PATH_TO_PYTHON = os.path.normpath(os.path.join(BASE_DIR, "venv/Scripts/python.exe"))
-
+KEYBOARD = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()

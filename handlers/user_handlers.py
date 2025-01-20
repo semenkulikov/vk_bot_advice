@@ -2,7 +2,7 @@ from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
-from config_data.config import BASE_DIR, ADMIN_ID
+from config_data.config import BASE_DIR, ADMIN_ID, KEYBOARD
 import os
 import datetime
 
@@ -23,7 +23,6 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
     :param vk_api_elem: VkApiMethod
     :return: None
     """
-    keyboard = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()
 
     user_id = event.object.message["from_id"]
     user_obj = vk_api_elem.users.get(user_id=user_id)[0]
@@ -41,31 +40,32 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
         vk_api_elem.messages.send(peer_id=user_id,
                                   message=start_text.format(full_name=full_name),
                                   random_id=get_random_id(),
-                                  keyboard=keyboard)
+                                  keyboard=KEYBOARD)
     else:
         vk_api_elem.messages.send(peer_id=user_id,
                                   message=start_text.format(full_name=full_name),
                                   random_id=get_random_id(),
-                                  keyboard=keyboard)
+                                  keyboard=KEYBOARD)
         if phone is None:
             vk_api_elem.messages.send(peer_id=user_id,
                                       message=f"Внимание! Не удалось получить номер телефона.\n"
                                               f"Напишите его отдельно в формате +79991234567, без номера телефона вы не "
                                               f"сможете записаться на консультацию!",
                                       random_id=get_random_id(),
-                                      keyboard=keyboard)
+                                      keyboard=KEYBOARD)
         if birthday is None:
             vk_api_elem.messages.send(peer_id=user_id,
                                       message=f"Внимание! Не удалось получить дату рождения.\n"
                                               f"Напишите ее отдельно в формате 12.13.1415 (день, месяц, год), иначе вы не "
                                               f"сможете записаться на консультацию!",
                                       random_id=get_random_id(),
-                                      keyboard=keyboard)
+                                      keyboard=KEYBOARD)
         user = User.create(user_id=user_id,
                           full_name=full_name,
                           phone=phone,
                           address=address,
                           birthday=birthday)
+
         app_logger.info(f"Новый пользователь {full_name} добавлен в базу.")
 
 
@@ -94,7 +94,8 @@ def often_questions_handler(event: VkBotEvent, vk_api_elem) -> None:
     """
     vk_api_elem.messages.send(peer_id=user_id,
                               message=f"Здесь собраны ответы на основные вопросы.\n{result_text}",
-                              random_id=get_random_id())
+                              random_id=get_random_id(),
+                              keyboard=KEYBOARD)
 
 
 def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
@@ -116,7 +117,8 @@ def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
 
     vk_api_elem.messages.send(peer_id=user_id,
                               message=f"Дата рождения успешно добавлена!",
-                              random_id=get_random_id())
+                              random_id=get_random_id(),
+                              keyboard=KEYBOARD)
 
     user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
     user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
@@ -127,7 +129,8 @@ def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="ВАЖНО! Чтобы я могла записать вас на консультацию, "
                                           "ваш возраст должен быть не менее 21 года.",
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
 
 
 
@@ -152,7 +155,8 @@ def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
 
     vk_api_elem.messages.send(peer_id=user_id,
                               message="Спасибо, мы пришлем вам напоминание о времени вашей записи!",
-                              random_id=get_random_id())
+                              random_id=get_random_id(),
+                              keyboard=KEYBOARD)
 keyboard = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()
 
 def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
@@ -166,7 +170,8 @@ def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
     if str(event.object.message["from_id"]) == str(ADMIN_ID):
         app_logger.info("Запрос отчета о консультациях от администратора")
 
-        report_text = "Отчет о консультациях на сегодня:\n\nВремя                  Пользователь\n"
+        # report_text = "Отчет о консультациях на сегодня:\n\nВремя                  Пользователь\n"
+        report_text = "Отчет о консультациях на сегодня:\n\n"
         # Получаем все записи Timetable на сегодня.
         today_timetables = Timetable.select().where(Timetable.is_booked == True)
         cur_date = datetime.date.today()
@@ -175,16 +180,21 @@ def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
                 report_text += f"\nДата: {timetable.date}\n\n"
                 cur_date = timetable.date
             cur_user: User = User.get_by_id(timetable.user_id)
-            report_text += (f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}      "
-                            f"{cur_user.full_name}, {cur_user.phone}, {cur_user.birthday}, "
-                            f"{cur_user.address if cur_user.address is not None else ""}\n")
+            # report_text += (f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}      "
+            #                 f"{cur_user.full_name}, {cur_user.phone}, {cur_user.birthday}, "
+            #                 f"{cur_user.address if cur_user.address is not None else ""}\n")
+            report_text += (f"Время: {timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}\n"
+                            f"Имя: {cur_user.full_name}\n"
+                            f"Телефон: {cur_user.phone}\n"
+                            f"Дата рождения: {cur_user.birthday}\n\n")
 
         report_text += f"\n\nВсего записей: {len(today_timetables)}"
 
         # Отправляем отчет администратору
         vk_api_elem.messages.send(peer_id=ADMIN_ID,
                                   message=report_text,
-                                  random_id=get_random_id())
+                                  random_id=get_random_id(),
+                                  keyboard=KEYBOARD)
         return
     app_logger.warning(f"Внимание! Пользователь c id {event.object.message["from_id"]} запросил отчет!")
     vk_api_elem.messages.send(peer_id=event.object.message["from_id"],
