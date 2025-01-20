@@ -1,8 +1,8 @@
-from database.models import User
+from database.models import User, Timetable
 from vk_api.bot_longpoll import VkBotEvent
 from vk_api.utils import get_random_id
 from logger import app_logger
-from config_data.config import BASE_DIR
+from config_data.config import BASE_DIR, ADMIN_ID
 import os
 import datetime
 
@@ -153,3 +153,35 @@ def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
     vk_api_elem.messages.send(peer_id=user_id,
                               message="Спасибо, мы пришлем вам напоминание о времени вашей записи!",
                               random_id=get_random_id())
+keyboard = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()
+
+def get_report_handler(event: VkBotEvent, vk_api_elem) -> None:
+    """
+    Хендлер для формирования отчета о консультациях и отправки администратору
+    :param event: VkBotEvent
+    :param vk_api_elem: VkApiMethod
+    :return: None
+    """
+
+    if str(event.object.message["from_id"]) == str(ADMIN_ID):
+        app_logger.info("Запрос отчета о консультациях от администратора")
+
+        report_text = "Отчет о консультациях на сегодня:\n\nВремя                  Пользователь\n"
+        # Получаем все записи Timetable на сегодня.
+        today_timetables = Timetable.select().where(Timetable.date == datetime.date.today(),
+                                                    Timetable.is_booked == True)
+
+        for timetable in today_timetables:
+            cur_user: User = User.get_by_id(timetable.user_id)
+            report_text += (f"{timetable.start_time.strftime("%H:%M")} - {timetable.end_time.strftime("%H:%M")}      "
+                            f"{cur_user.full_name}, {cur_user.phone}, {cur_user.birthday}, "
+                            f"{cur_user.address if cur_user.address is not None else ""}\n")
+
+        report_text += f"\n\nВсего записей: {len(today_timetables)}"
+
+        # Отправляем отчет администратору
+        vk_api_elem.messages.send(peer_id=ADMIN_ID,
+                                  message=report_text,
+                                  random_id=get_random_id())
+        return
+    app_logger.warning(f"Внимание! Пользователь c id {event.object.message["from_id"]} вызвал команду /get_report!")

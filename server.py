@@ -3,7 +3,8 @@ from vk_api.bot_longpoll import VkBotLongPoll
 from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
-from handlers.user_handlers import start_handler, often_questions_handler, add_birthday_handler, add_phone_handler
+from handlers.user_handlers import start_handler, often_questions_handler, add_birthday_handler, add_phone_handler, \
+    get_report_handler
 from handlers.timetable_handlers import get_free_time_handler
 from handlers.reservation_handlers import reservation_date_handler, reservation_time_handler, reservation_handler
 
@@ -90,6 +91,8 @@ class Server:
                                           re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
                                                    event.object.message["text"])[0])
 
+                    elif event.object.message["text"] == "/get_report":
+                        get_report_handler(event, self.vk_api)
                     # Обработка текстовых сообщений - прочие тексты
                     else:
                         # Пользователь запустил бота
