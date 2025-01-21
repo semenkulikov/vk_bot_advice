@@ -116,7 +116,7 @@ def add_birthday_handler(event: VkBotEvent, vk_api_elem, birthday) -> None:
     # Отправляем пользователю сообщение об успешном добавлении даты рождения
 
     vk_api_elem.messages.send(peer_id=user_id,
-                              message=f"Дата рождения успешно добавлена!",
+                              message="Данные сохранены. Пожалуйста, запишитесь повторно на консультацию.",
                               random_id=get_random_id(),
                               keyboard=KEYBOARD)
 
@@ -154,7 +154,7 @@ def add_phone_handler(event: VkBotEvent, vk_api_elem, phone_number) -> None:
     # Отправляем пользователю сообщение об успешном добавлении номера телефона
 
     vk_api_elem.messages.send(peer_id=user_id,
-                              message="Спасибо, мы пришлем вам напоминание о времени вашей записи!",
+                              message="Данные сохранены. Пожалуйста, запишитесь повторно на консультацию.",
                               random_id=get_random_id(),
                               keyboard=KEYBOARD)
 keyboard = open(os.path.join(BASE_DIR, "keyboards/default.json"), "r", encoding="UTF-8").read()
