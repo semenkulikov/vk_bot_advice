@@ -57,7 +57,7 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False
                 existing_dates.append(timetable_obj.date)
     existing_dates = sorted(list(set(existing_dates)))
     # Генерирует клавиатуру с выбором существующих дат
-    if len(existing_dates) > 8:
+    if len(existing_dates) >= 8:
         keyboard = {
             "inline": True,
             "buttons": []
