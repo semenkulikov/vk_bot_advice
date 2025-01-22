@@ -7,16 +7,6 @@
         "action":{
           "type":"text",
           "payload":"{\"button\": \"1\"}",
-          "label":"Узнать свободное время"
-        },
-        "color":"primary"
-      }
-    ],
-    [
-      {
-        "action":{
-          "type":"text",
-          "payload":"{\"button\": \"1\"}",
           "label":"Частые вопросы"
         },
         "color":"secondary"

@@ -93,7 +93,7 @@ class Server:
 
                     elif event.object.message["text"] == "Отчёт":
                         get_report_handler(event, self.vk_api)
-                    # Обработка текстовых сообщений - прочие тексты
+                    # Обработка текстовых сообщений — прочие тексты
                     else:
                         # Пользователь запустил бота
                         start_handler(event, self.vk_api)

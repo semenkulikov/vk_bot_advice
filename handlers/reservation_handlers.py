@@ -225,9 +225,9 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
     #                               random_id=get_random_id(),
     #                               keyboard=KEYBOARD)
     #     return
-    user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
-    user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
-                                  day=user_birthday_list[0])
+    # user_birthday_list = [int(elem) for elem in user.birthday.split(".")]
+    # user_birthday = datetime.date(year=user_birthday_list[2], month=user_birthday_list[1],
+    #                               day=user_birthday_list[0])
     # if (datetime.datetime.now().date() - user_birthday).days <= 7665:
     #     app_logger.warning(f"Внимание! Запрос бронирования консультации от {user.full_name} "
     #                        f"на {datetime_reserved} отклонен: менее 21 года")
@@ -264,7 +264,7 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                                   message=f"Новое бронирование консультации:\n"
                                           f"Пользователь: {user.full_name}\n"
                                           f"Номер телефона: {user.phone}\n"
-                                          f"Дата рождения: {user.birthday} (больше 21)\n"
+                                          f"Дата рождения: {user.birthday}\n"
                                           f"Время: {start_time} - {end_time}\n"
                                           f"Дата: {cur_t.date}\n",
                                   random_id=get_random_id(),
