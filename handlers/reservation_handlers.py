@@ -38,8 +38,7 @@ def reservation_date_handler(event: VkBotEvent, vk_api_elem, online_advice=False
         app_logger.info(f"Запрос бронирования времени на личный прием от {user.full_name}")
         vk_api_elem.messages.send(peer_id=user_id,
                                   message="Вы записываетесь на личную консультацию. "
-                                          "Она проходит по понедельникам, вторникам и средам с 10:00 до 18:00.\n"
-                                          "Перерыв на обед - с 12:00 до 14:00",
+                                          "Она проходит по понедельникам, вторникам и средам с 14:00 до 19:00.\n",
                                   random_id=get_random_id(),
                                   keyboard=KEYBOARD)
     # Получение текущей даты, получение существующих дат из БД.
@@ -249,12 +248,18 @@ def reservation_handler(event: VkBotEvent, vk_api_elem, datetime_reserved: str) 
                                           f"Дата: {cur_t.date}\n",
                                   random_id=get_random_id(),
                                   keyboard=KEYBOARD)
-
-        vk_api_elem.messages.send(peer_id=user_id,
-                                  message=f"Если оставите номер своего телефона - "
-                                          f"мы вышлем вам напоминание о времени записи, для вашего удобства!",
-                                  random_id=get_random_id(),
-                                  keyboard=KEYBOARD)
+        if user.phone is None:
+            vk_api_elem.messages.send(peer_id=user_id,
+                                      message=f"Если оставите номер своего телефона - "
+                                              f"мы вышлем вам напоминание о времени записи, для вашего удобства!",
+                                      random_id=get_random_id(),
+                                      keyboard=KEYBOARD)
+        else:
+            vk_api_elem.messages.send(peer_id=user_id,
+                                      message=f"Мы отправим вам напоминание о времени "
+                                            f"вашей записи за 2 часа до начала приема!",
+                                      random_id=get_random_id(),
+                                      keyboard=KEYBOARD)
 
         # Запуск напоминания о консультации за 2 часа до начала консультации
         send_notification(cur_t.id, vk_api_elem)

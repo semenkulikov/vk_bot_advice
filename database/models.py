@@ -44,9 +44,10 @@ def create_time_tables():
         cur_date = cur_datetime + datetime.timedelta(days=i)
         if cur_date.weekday() not in [5, 6]:  # Будни, кроме выходных
             if cur_date.weekday() in (0, 1, 2):
-                for start_time in ["10:00", "10:20", "10:40", "11:00", "11:20", "11:40",
+                for start_time in [# "10:00", "10:20", "10:40", "11:00", "11:20", "11:40",
                                    "14:00", "14:20", "14:40", "15:00", "15:20", "15:40",
-                                   "16:00", "16:20", "16:40", "17:00", "17:20", "17:40"]:
+                                   "16:00", "16:20", "16:40", "17:00", "17:20", "17:40",
+                                    "18:00", "18:20", "18:40"]:
                     end_time = start_time.split(":")[0] + ":" + str(int(start_time.split(":")[1]) + 19)
                     # Проверка, нет ли уже существующей записи
                     if not Timetable.select().where(Timetable.date == cur_date,
@@ -67,6 +68,12 @@ def delete_time_tables():
     """ Функция для удаления старых устаревших записей графика (вчерашних и ранее) """
     cur_datetime = datetime.datetime.now()
     Timetable.delete().where(Timetable.date < cur_datetime.date()).execute()
+
+    # Удаление записей в цикле с условием: это понедельник, вторник либо среда, и дата конца меньше 14:00
+    for timetable_obj in Timetable.select():
+        if timetable_obj.date.weekday() in (0, 1, 2) and timetable_obj.end_time.hour < 14:
+            timetable_obj.delete_instance()
+
 
 def generate_time_tables():
     """ Функция для асинхронного запуска функции create_time_tables каждые 3 недели """
