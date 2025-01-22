@@ -4,7 +4,7 @@ from vk_api.bot_longpoll import VkBotEventType
 from vk_api.utils import get_random_id
 from logger import app_logger
 from handlers.user_handlers import start_handler, often_questions_handler, add_birthday_handler, add_phone_handler, \
-    get_report_handler
+    get_report_handler, my_timetables_handler, get_timetable_handler, delete_timetable_handler
 from handlers.timetable_handlers import get_free_time_handler
 from handlers.reservation_handlers import reservation_date_handler, reservation_time_handler, reservation_handler
 
@@ -50,6 +50,8 @@ class Server:
                 if event.type == VkBotEventType.MESSAGE_NEW and event.from_user:
                     if event.object.message["text"] == "Узнать свободное время":
                         get_free_time_handler(event, self.vk_api)
+                    if event.object.message["text"] == "Мои записи":
+                        my_timetables_handler(event, self.vk_api)
                     elif event.object.message["text"] == "Частые вопросы":
                         often_questions_handler(event, self.vk_api)
                     elif event.object.message["text"] == "Личный прием":
@@ -91,6 +93,17 @@ class Server:
                                           re.match(r"^((8|\+7)[\- ]?)?(\(?\d{3}\)?[\- ]?)?[\d\- ]{7,10}$",
                                                    event.object.message["text"])[0])
 
+                    # Обработка текстовых сообщений - записи на прием вида %m.%d: %H:%M - %H:%M через регулярное выражение
+                    elif re.match(r"\d{1,2}\.\d{1,2}:\s\d{2}:\d{2} - \d{2}:\d{2}",
+                                  event.object.message["text"]):
+                        res = re.match(r"\d{1,2}\.\d{1,2}:\s\d{2}:\d{2} - \d{2}:\d{2}",
+                                        event.object.message["text"])[0]
+                        get_timetable_handler(event, self.vk_api, res)
+                    elif re.match(r"Отменить запись \d{1,2}\.\d{1,2}:\s\d{2}:\d{2} - \d{2}:\d{2}",
+                                  event.object.message["text"]):
+                        res = re.match(r"Отменить запись \d{1,2}\.\d{1,2}:\s\d{2}:\d{2} - \d{2}:\d{2}",
+                                        event.object.message["text"])[0]
+                        delete_timetable_handler(event, self.vk_api, res)
                     elif event.object.message["text"] == "Отчёт":
                         get_report_handler(event, self.vk_api)
                     # Обработка текстовых сообщений — прочие тексты

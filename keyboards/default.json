@@ -7,6 +7,16 @@
         "action":{
           "type":"text",
           "payload":"{\"button\": \"1\"}",
+          "label":"Мои записи"
+        },
+        "color":"secondary"
+      }
+    ],
+    [
+      {
+        "action":{
+          "type":"text",
+          "payload":"{\"button\": \"1\"}",
           "label":"Частые вопросы"
         },
         "color":"secondary"
