@@ -46,20 +46,20 @@ def start_handler(event: VkBotEvent, vk_api_elem) -> None:
                                   message=start_text.format(full_name=full_name),
                                   random_id=get_random_id(),
                                   keyboard=KEYBOARD)
-        if phone is None:
-            vk_api_elem.messages.send(peer_id=user_id,
-                                      message=f"Внимание! Не удалось получить номер телефона.\n"
-                                              f"Напишите его отдельно в формате +79991234567, без номера телефона вы не "
-                                              f"сможете записаться на консультацию!",
-                                      random_id=get_random_id(),
-                                      keyboard=KEYBOARD)
-        if birthday is None:
-            vk_api_elem.messages.send(peer_id=user_id,
-                                      message=f"Внимание! Не удалось получить дату рождения.\n"
-                                              f"Напишите ее отдельно в формате 12.13.1415 (день, месяц, год), иначе вы не "
-                                              f"сможете записаться на консультацию!",
-                                      random_id=get_random_id(),
-                                      keyboard=KEYBOARD)
+        # if phone is None:
+        #     vk_api_elem.messages.send(peer_id=user_id,
+        #                               message=f"Внимание! Не удалось получить номер телефона.\n"
+        #                                       f"Напишите его отдельно в формате +79991234567, без номера телефона вы не "
+        #                                       f"сможете записаться на консультацию!",
+        #                               random_id=get_random_id(),
+        #                               keyboard=KEYBOARD)
+        # if birthday is None:
+        #     vk_api_elem.messages.send(peer_id=user_id,
+        #                               message=f"Внимание! Не удалось получить дату рождения.\n"
+        #                                       f"Напишите ее отдельно в формате 12.13.1415 (день, месяц, год), иначе вы не "
+        #                                       f"сможете записаться на консультацию!",
+        #                               random_id=get_random_id(),
+        #                               keyboard=KEYBOARD)
         user = User.create(user_id=user_id,
                           full_name=full_name,
                           phone=phone,
